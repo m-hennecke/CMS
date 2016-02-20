@@ -1,5 +1,5 @@
-# $Id$
 # vi: set tabstop=4 expandtab shiftwidth=4:
+##############################################################################
 package CMS;
 
 =pod
@@ -33,7 +33,9 @@ use HTTP::Date;
 
 our $VERSION = '0.01';
 
-=head1 Class Interface ctor/dtor
+=head1 CLASS INTERFACE
+
+=head2 Constructor
 
 =over
 
@@ -45,15 +47,11 @@ Additional parameters to the ones accepted by the base class are:
 =over
 
 =item * B<CMS_ROOT>:
-
 Root directory of the CMS.
 
 =item * B<CONFIG>:
-
 A hash with config parameters. Is usually filled via the CMS::Config
 class via the C<config.yaml> file in the C<CMS_ROOT> directory.
-
-=back
 
 =back
 
@@ -125,7 +123,9 @@ sub new {
     bless($self, $class);
 }
 
-=head1 Member Functions
+=back
+
+=head2 MEMBER FUNCTIONS
 
 =over
 

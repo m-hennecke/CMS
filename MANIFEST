@@ -2,8 +2,8 @@ Changes
 MANIFEST
 Makefile.PL
 README
-CMS.pl
-Sitemap.pl
+cms.pl
+sitemap.pl
 lib/CMS.pm
 lib/CMS/Config.pm
 lib/CMS/Daemon.pm

@@ -10,7 +10,7 @@ WriteMakefile(
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
       ? ('LICENSE'=> 'bsd')
       : ()),
-    EXE_FILES => [ qw/CMS.pl Sitemap.pl/ ],
+    EXE_FILES => [ qw/cms.pl sitemap.pl/ ],
     PREREQ_PM => {
 	'Apache::Session::File' => 0,
 	'Authen::Htpasswd' => 0,
