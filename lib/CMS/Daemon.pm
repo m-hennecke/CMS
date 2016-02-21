@@ -1,4 +1,4 @@
-# $Id$
+# ABSTRACT: Daemon related functions
 # vi: set tabstop=4 expandtab shiftwidth=4:
 ##############################################################################
 package CMS::Daemon;

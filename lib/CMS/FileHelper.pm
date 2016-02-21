@@ -1,4 +1,4 @@
-# $Id$
+# ABSTRACT: File and directory handling helper functions
 # vi: set tabstop=4 expandtab shiftwidth=4:
 ##############################################################################
 package CMS::FileHelper;

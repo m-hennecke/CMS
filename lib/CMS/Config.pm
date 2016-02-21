@@ -1,4 +1,4 @@
-# $Id$
+# ABSTRACT: Configuration wrapper
 # vi: set expandtab shiftwidth=4:
 ##############################################################################
 package CMS::Config;
@@ -23,7 +23,9 @@ use YAML::XS;
 
 ##############################################################################
 
-=head1 Class Interface ctor/dtor
+=head1 CLASS INTERFACE
+
+=head2 Constructor
 
 =over
 
@@ -74,13 +76,13 @@ sub new {
 }
 
 
-=head1 Member Functions
+=head2 Member Functions
 
 =over
 
 =item config()
 
-Returns the config hash.
+Returns the actual config hash.
 
 =cut
 

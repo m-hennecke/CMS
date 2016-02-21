@@ -1,4 +1,4 @@
-# $id$
+# ABSTRACT: Base class for a content request handler
 # vi: set expandtab shiftwidth=4:
 ##############################################################################
 package CMS::Handler;
@@ -23,7 +23,9 @@ use Sys::Syslog qw(:macros :standard);
 
 ##############################################################################
 
-=head1 Class Interface ctor/dtor
+=head1 CLASS INTERFACE
+
+=head2 Constructor
 
 =over
 
@@ -35,15 +37,12 @@ Additional parameters are:
 =over
 
 =item * B<IN>:
-
 Input file handle, defaults to STDIN
 
 =item * B<OUT>:
-
 Output file handle, defaults to STDIN
 
 =item * B<ERR>:
-
 Error file handle, defaults to STDERR
 
 =back
@@ -71,7 +70,7 @@ sub new {
     bless($self, $class);
 }
 
-=head1 Member Functions
+=head2 Member Functions
 
 =over
 

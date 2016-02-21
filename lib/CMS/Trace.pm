@@ -1,4 +1,4 @@
-# $Id$
+# ABSTRACT: Helper function for traceing and log
 # vi: set tabstop=4 expandtab shiftwidth=4:
 ##############################################################################
 package CMS::Trace;

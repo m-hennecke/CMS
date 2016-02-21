@@ -1,4 +1,4 @@
-# $Id:$
+# ABSTRACT: Google Sitemap related code
 # vi: set expandtab shiftwidth=4:
 #############################################################################
 package CMS::Sitemap;
@@ -29,11 +29,13 @@ use Sys::Hostname;
 use Sys::Syslog qw(:macros :standard);
 use Compress::Zlib;
 
-=head1 Class Interface ctor/dtor
+=head1 CLASS INTERFACE
+
+=head2 Constructor
 
 =over
 
-=item new
+=item new()
 
 Create a new instance of this class.
 Additional parameters to the parameters passed to the ctor of CMS::Handler
@@ -41,14 +43,11 @@ are:
 
 =over
 
-=item *
+=item * B<CMS_ROOT>:
+Root directory of the CMS
 
-CMS_ROOT: Root directory of the CMS
-
-=item *
-
-HOSTNAME: Hostname used in the generated links. Default uses
-L<hostname()|hostname>
+=item * B<HOSTNAME>:
+Hostname used in the generated links. Default uses L<hostname()|hostname>
 
 =back
 
@@ -78,7 +77,7 @@ sub new {
     bless($self, $class);
 }
 
-=head1 Member Functions
+=head2 Member Functions
 
 =over
 
@@ -86,7 +85,7 @@ sub new {
 
 See L<CMS::Handler|CMS::Handler> for SUPER functions behaviour.
 Creates the XML suitable for google sitemap service without zipping it and
-stores the result in the $self->{BODY} member variable.
+stores the result in the C<< $self->{BODY} >> member variable.
 
 =cut
 

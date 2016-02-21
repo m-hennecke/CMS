@@ -55,6 +55,8 @@ class via the C<config.yaml> file in the C<CMS_ROOT> directory.
 
 =back
 
+=back
+
 =cut
 
 sub new {
@@ -123,9 +125,7 @@ sub new {
     bless($self, $class);
 }
 
-=back
-
-=head2 MEMBER FUNCTIONS
+=head2 Member Functions
 
 =over
 
