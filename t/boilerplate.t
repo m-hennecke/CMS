@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 sub not_in_file_ok {
     my ($filename, %regex) = @_;
@@ -54,6 +54,7 @@ TODO: {
   module_boilerplate_ok('lib/CMS/FCGI.pm');
   module_boilerplate_ok('lib/CMS/FileHelper.pm');
   module_boilerplate_ok('lib/CMS/Handler.pm');
+  module_boilerplate_ok('lib/CMS/Session.pm');
   module_boilerplate_ok('lib/CMS/Sitemap.pm');
   module_boilerplate_ok('lib/CMS/Trace.pm');
 

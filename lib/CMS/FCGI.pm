@@ -251,6 +251,8 @@ RETRY:
             $req->LastCall();
             $self->handle_request(\$req);
             $req->Finish();
+            # Cleanup the handler here
+            $self->{HANDLER} = undef;
             exit(0);
         }
         else {

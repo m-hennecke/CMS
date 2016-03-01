@@ -1,6 +1,6 @@
 #!perl -T
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 BEGIN {
     use_ok( 'CMS' ) || print "Bail out!
@@ -14,6 +14,8 @@ BEGIN {
     use_ok( 'CMS::FileHelper' ) || print "Bail out!
 ";
     use_ok( 'CMS::Handler' ) || print "Bail out!
+";
+    use_ok( 'CMS::Session' ) || print "Bail out!
 ";
     use_ok( 'CMS::Sitemap' ) || print "Bail out!
 ";

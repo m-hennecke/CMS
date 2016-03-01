@@ -12,7 +12,8 @@ WriteMakefile(
       : ()),
     EXE_FILES => [ qw/cms.pl sitemap.pl/ ],
     PREREQ_PM => {
-	'Apache::Session::File' => 0,
+	'Cache::Cache' => 0,
+	'Data::Uniqid' => 0,
 	'Authen::Htpasswd' => 0,
 	'FCGI' => 0,
 	'HTML::Template' => 0,

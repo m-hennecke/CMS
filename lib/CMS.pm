@@ -18,16 +18,15 @@ use strict;
 use warnings;
 
 use parent 'CMS::Handler';
+use CMS::Session;
 use CMS::Trace qw(funcname);
 use CMS::FileHelper qw(getNewestFileDate getDirectoryEntries);
 
-use Apache::Session::File;
 use Authen::Htpasswd;
 use File::Path qw(make_path);
 use Sys::Hostname;
 use Sys::Syslog qw(:macros :standard);
 use HTML::Template;
-use HTTP::Date;
 
 ##############################################################################
 
@@ -99,13 +98,6 @@ sub new {
     if (!$self->{CONFIG}->{session}->{path}) {
         $self->{CONFIG}->{session}->{path} = '/tmp/sessions';
     }
-    make_path($self->{CONFIG}->{session}->{path}, { mode => 01777 })
-      unless -d $self->{CONFIG}->{session}->{path};
-    if (!$self->{CONFIG}->{session}->{lockpath}) {
-        $self->{CONFIG}->{session}->{lockpath} = '/tmp/lock/sessions';
-    }
-    make_path($self->{CONFIG}->{session}->{lockpath}, { mode => 01777 })
-      unless -d $self->{CONFIG}->{session}->{lockpath};
     if (!$self->{CONFIG}->{session}->{cookiedomain}) {
         $self->{CONFIG}->{session}->{cookiedomain}
             = '.' . $self->{CONFIG}->{hostname}->{ssl};
@@ -124,6 +116,7 @@ sub new {
 
     bless($self, $class);
 }
+
 
 =head2 Member Functions
 
@@ -254,6 +247,7 @@ sub set_language {
     $self->{PAGE_LANG} = $lang;
 }
 
+
 =item create_document()
 
 Puts everything together.
@@ -327,11 +321,7 @@ sub create_document {
     # Remove the session if we are to log out
     my $action = $self->{PARAMS}->{action};
     if ($action && ($action eq 'logout')) {
-        if ($self->{SESSION}) {
-            tied(%{$self->{SESSION}})->delete();
-            $self->{SESSION} = undef;
-        }
-        $self->{SESSION_ID} = undef;
+        $self->destroy_session();
     }
 
     # Read all the CMS files that will create the page
@@ -363,7 +353,7 @@ sub create_document {
     # via the session
     if (-e $login_file) {
         # Do the session and log on magic
-        $self->create_session($self->{SESSION_ID}) unless $self->{SESSION};
+        $self->create_session() unless $self->{SESSION};
         my $session = $self->{SESSION};
         my $userdb = new Authen::Htpasswd($self->{CONFIG}->{userdb});
 
@@ -372,9 +362,9 @@ sub create_document {
         my $password = $self->{PARAMS}->{password} || '';
 
         if ($username eq '') {
-            if ($session && $session->{loggedin}) {
-                if ($session->{loggedin} != 1) {
-                    $session->{loggedin} = 0;
+            if ($session && $session->get('loggedin')) {
+                if ($session->get('loggedin') != 1) {
+                    $session->set('loggedin', 0);
                     $content_file = $login_file;
                 }
             }
@@ -384,15 +374,15 @@ sub create_document {
         }
         elsif (! $userdb->lookup_user($username)) {
             $content_file = $login_file;
-            $session->{loggedin} = 0;
+            $session->set('loggedin', 0);
         }
         elsif (! $userdb->check_user_password($username, $password)) {
             $content_file = $login_file;
-            $session->{loggedin} = 0;
+            $session->set('loggedin', 0);
         }
         else {
-            $session->{username} = $username;
-            $session->{loggedin} = 1;
+            $session->set('username', $username);
+            $session->set('loggedin', 1);
         }
     }
 
@@ -447,17 +437,7 @@ sub render {
     syslog(LOG_DEBUG, funcname());
     
     # Handle Cookies
-    if ($self->{SESSION_ID}) {
-        my $cookie = 'SESSION_ID=' . $self->{SESSION_ID} . ';domain='
-            . $self->{CONFIG}->{session}->{cookiedomain};
-        $self->add_header('Set-Cookie', $cookie);
-    }
-    elsif ($self->{COOKIE}) {
-        my $cookie = 'SESSION_ID=' . $self->{COOKIE} . ';expires='
-            . time2str(time - (86400 * 365)) . ';domain='
-            . $self->{CONFIG}->{session}->{cookiedomain};
-        $self->add_header('Set-Cookie', $cookie);
-    }
+    $self->set_session_cookie();
 
     # Handle Redirects
     return $self->redirect($self->{REDIRECT}) if ($self->{REDIRECT});
@@ -472,99 +452,6 @@ sub render {
     }
 
     return $self->SUPER::render();
-}
-
-
-=item fetch_session()
-
-Reads the session id from a cookie if one is set. If there is a cookie set,
-the session will be tied to C<$self-E<gt>{SESSION}> and the session id will
-be stored in C<$self-E<gt>{SESSION_ID}>. If no such cookie exists or the
-session could not be tied, both will be set to undef.
-
-=cut
-
-sub fetch_session {
-    my $self = shift;
-
-    syslog(LOG_DEBUG, funcname());
-    
-    # Try to get a session id
-    $self->{COOKIE} = $ENV{'HTTP_COOKIE'};
-    $self->{COOKIE} =~ s/SESSION_ID=(\w+)/$1/ if $self->{COOKIE};
-
-    if ($self->{COOKIE}) {
-        eval {
-            tie %{$self->{SESSION}}, 'Apache::Session::File', $self->{COOKIE},
-                {
-                    Directory     => $self->{CONFIG}->{session}->{path},
-                    LockDirectory => $self->{CONFIG}->{session}->{lockpath},
-                };
-        };
-        if ($@) {
-            syslog(LOG_ERR, 'CMS::fetch_session(): Unable to tie session: '
-                . $@);
-            $self->{SESSION_ID} = undef;
-            $self->{SESSION} = undef;
-        }
-        else {
-            my $remote_ip = $ENV{'REMOTE_ADDR'};
-            $self->{SESSION}->{last_access} = time()
-                if (!$self->{SESSION}->{last_access});
-            if ((($self->{SESSION}->{last_access} + (60 * 60)) > time())
-                    && ($self->{SESSION}->{peer})
-                    && ($self->{SESSION}->{peer} eq $remote_ip)) {
-                $self->{SESSION_ID} = $self->{SESSION}->{_session_id};
-                $self->{SESSION}->{last_access} = time();
-                tied(%{$self->{SESSION}})->save();
-            }
-            else {
-                syslog(LOG_ERR, 'CMS::fetch_session(): Session timed out or '
-                                . 'ip mismatch');
-                $self->{SESSION_ID} = undef;
-                tied(%{$self->{SESSION}})->delete();
-                $self->{SESSION} = undef;
-            }
-        }
-    }
-    else {
-        $self->{SESSION_ID} = undef;
-    }
-}
-
-
-=item create_session($session_id)
-
-Creates a session either from an existing session id or a new session if
-the session id was undefined.
-
-=cut
-
-sub create_session {
-    my $self = shift;
-    my $session_id = shift;
-
-    syslog(LOG_DEBUG, funcname());
-    
-    eval {
-        tie %{$self->{SESSION}}, 'Apache::Session::File', $session_id,
-                {
-                    Directory     => $self->{CONFIG}->{session}->{path},
-                    LockDirectory => $self->{CONFIG}->{session}->{lockpath},
-                };
-    };
-    if ($@) {
-        syslog(LOG_ERR, 'CMS::create_session(): Unable to tie session: ' . $@);
-        $self->{SESSION_ID} = undef;
-        $self->{SESSION} = undef;
-    }
-    else {
-        my $remote_ip = $ENV{'REMOTE_ADDR'};
-        $self->{SESSION}->{peer} = $remote_ip;
-        $self->{SESSION_ID} = $self->{SESSION}->{_session_id};
-        $self->{SESSION}->{last_access} = time();
-        tied(%{$self->{SESSION}})->save();
-    }
 }
 
 
@@ -705,8 +592,8 @@ sub create_links {
     }
 
     # Add a logout link if we have a valid login session
-    if ($self->{SESSION} && $self->{SESSION}->{loggedin}
-            && ($self->{SESSION}->{loggedin} == 1) && ($sublevel == 1)) {
+    if ($self->{SESSION} && $self->{SESSION}->get('loggedin')
+            && ($self->{SESSION}->get('loggedin') == 1) && ($sublevel == 1)) {
         my $logout_link = $self->{PAGE_URI} . '?action=logout';
         push @newlinks, {
             SUB      => 0,

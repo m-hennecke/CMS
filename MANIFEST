@@ -10,6 +10,7 @@ lib/CMS/Daemon.pm
 lib/CMS/FCGI.pm
 lib/CMS/FileHelper.pm
 lib/CMS/Handler.pm
+lib/CMS/Session.pm
 lib/CMS/Sitemap.pm
 lib/CMS/Trace.pm
 t/00-load.t
@@ -17,3 +18,4 @@ t/manifest.t
 t/pod-coverage.t
 t/pod.t
 t/boilerplate.t
+t/session.t

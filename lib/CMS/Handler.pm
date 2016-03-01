@@ -18,7 +18,9 @@ Base class for FCGI handlers.
 use strict;
 use warnings;
 
+use CMS::Session;
 use CMS::Trace qw(funcname);
+use HTTP::Date;
 use Sys::Syslog qw(:macros :standard);
 
 ##############################################################################
@@ -252,6 +254,127 @@ sub redirect {
     return $self->CMS::Handler::render();
 }
 
+
+=item destroy_session()
+
+Removes the session from the data storage and sets all member variables
+to undef.
+
+=cut
+
+sub destroy_session {
+    my $self = shift;
+
+    syslog(LOG_DEBUG, funcname());
+
+    if ($self->{SESSION}) {
+        $self->{SESSION}->delete();
+        $self->{SESSION} = undef;
+        $self->{SESSION_ID} = undef;
+    }
+}
+
+
+=item create_session()
+
+Creates a new session and stores the remote ip address under the key 'peer'
+in the session data.
+
+=cut
+
+sub create_session {
+    my $self = shift;
+
+    syslog(LOG_DEBUG, funcname());
+
+    my $session = new CMS::Session(
+        undef, $self->{CONFIG}->{session}->{path}
+    );
+    if (! $session) {
+        syslog(LOG_ERR, funcname() . ': Unable to create session.');
+        $self->{SESSION} = undef;
+        $self->{SESSION_ID} = undef;
+    }
+    else {
+        my $remote_ip = $ENV{'REMOTE_ADDR'};
+        $session->set('peer', $remote_ip);
+        $session->set('loggedin', 0);
+        $session->store();
+
+        $self->{SESSION} = $session;
+        $self->{SESSION_ID} = $session->id();
+    }
+    return $session;
+}
+
+
+=item fetch_session()
+
+Reads the session id from a cookie if one is set. If there is a cookie set,
+the session will be tied to C<$self-E<gt>{SESSION}> and the session id will
+be stored in C<$self-E<gt>{SESSION_ID}>. If no such cookie exists or the
+session could not be tied, both will be set to undef.
+
+=cut
+
+sub fetch_session {
+    my $self = shift;
+
+    syslog(LOG_DEBUG, funcname());
+
+    # Try to get a session id
+    $self->{COOKIE} = $ENV{'HTTP_COOKIE'};
+    $self->{COOKIE} =~ s/SESSION_ID=(\w+)/$1/ if $self->{COOKIE};
+
+    if ($self->{COOKIE}) {
+        my $session = new CMS::Session(
+            $self->{COOKIE}, $self->{CONFIG}->{session}->{path}
+        );
+        if (!$session) {
+            syslog(LOG_INFO, 
+                   funcname() . ': Session timed out or not available.');
+            $self->{SESSION_ID} = undef;
+            $self->{SESSION} = undef;
+        }
+        else {
+            my $remote_ip = $ENV{'REMOTE_ADDR'};
+            # Check if the ip addresses match
+            if (($session->get('peer')
+                    && ($session->get('peer') eq $remote_ip))) {
+                $self->{SESSION_ID} = $session->id();
+                $self->{SESSION} = $session;
+            }
+            else {
+                syslog(LOG_INFO, funcname() . ': ip mismatch');
+                $self->{SESSION_ID} = undef;
+                $self->{SESSION} = undef;
+            }
+        }
+    }
+    else {
+        $self->{SESSION_ID} = undef;
+        $self->{SESSION} = undef;
+    }
+    return defined($self->{SESSION});
+}
+
+
+=item set_session_cookie()
+
+Adds the cookie header to the header set.
+
+=cut
+
+sub set_session_cookie {
+    my $self = shift;
+
+    if ($self->{SESSION_ID}) {
+        my $cookie = 'SESSION_ID=' . $self->{SESSION_ID}
+            . ';expires=' . time2str(time + (3600))
+            . ';domain=' . $self->{CONFIG}->{session}->{cookiedomain};
+        $self->add_header('Set-Cookie', $cookie);
+    }
+}
 
 1;
 
