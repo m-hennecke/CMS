@@ -61,12 +61,12 @@ sub new {
 
     # Set the config file
     my $config_file = $self->{CMS_ROOT};
-    $config_file =~ s/\/$//;
+    $config_file =~ s/\/$//x;
     $config_file .= '/config.yaml';
     $self->{CMS_CONFIG} = $config_file;
 
     die 'No config file found under the CMS_ROOT directory "'
-            . $self->{CMS_ROOT} . '"'
+            . $self->{CMS_ROOT} . '"' . "\n"
         unless -f $self->{CMS_CONFIG};
 
     my $config = YAML::XS::LoadFile($config_file);

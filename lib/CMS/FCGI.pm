@@ -165,12 +165,13 @@ sub handle_request {
     my $req = shift;
     my $result = undef;
 
-    eval {
+    my $fail = not eval {
         local $SIG{__DIE__};
         $self->{HANDLER}->handler($req);
         $self->{HANDLER}->render();
+        return 1;
     };
-    if ($@) {
+    if ($fail) {
         # Log the error
         syslog(LOG_ERR, 'CMS::FCGI::handle_request(): ' . $@);
     }
@@ -207,7 +208,7 @@ sub main {
     # child handler has finished it. This means calling Finish() is mandatory
     # in the child process.
     {
-        ## no critic
+        ## no critic qw(TestingAndDebugging::ProhibitNoWarnings)
         no warnings qw( redefine );
         *FCGI::DESTROY = sub { };
         ## use critic

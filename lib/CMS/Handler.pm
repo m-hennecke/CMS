@@ -168,7 +168,7 @@ sub get_request_header {
 
     syslog(LOG_DEBUG, funcname());
 
-    my %header = map { $_ =~ /^HTTP(?:_|$)/ ? ($_, $ENV{$_}) : () } keys %ENV;
+    my %header = map { $_ =~ /^HTTP(?:_|$)/x ? ($_, $ENV{$_}) : () } keys %ENV;
     $self->{REQUEST_HEADER} = \%header;
     return $self->{REQUEST_HEADER};
 }
@@ -195,14 +195,14 @@ sub parse_params {
     return unless $method;
 
     if (($method eq 'GET') || ($method eq 'HEAD')) {
-        @variables = split(/&/, $ENV{'QUERY_STRING'});
+        @variables = split(/&/x, $ENV{'QUERY_STRING'});
     }
     elsif ($method eq 'POST') {
         read($self->{STDIN}, my $pdata, $ENV{'CONTENT_LENGTH'});
-        @variables = split(/&/, $pdata);
+        @variables = split(/&/x, $pdata);
 
         if ($ENV{'QUERY_STRING'}) {
-            my @getvariables = split(/&/, $ENV{'QUERY_STRING'});
+            my @getvariables = split(/&/x, $ENV{'QUERY_STRING'});
             push @variables, @getvariables;
         }
     }
@@ -212,15 +212,15 @@ sub parse_params {
     }
 
     foreach my $var (@variables) {
-        next unless ($var && ($var =~ /\=/));
-        my ($name, $value) = split(/\=/, $var);
+        next unless ($var && ($var =~ /\=/x));
+        my ($name, $value) = split(/\=/x, $var);
 
         $name =~ tr/+/ /;
-        $name =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+        $name =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/egx;
         $value =~ tr/+/ /;
-        $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+        $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/egx;
 
-        $value =~ s/<!--(.|\n)*-->//g;
+        $value =~ s/<!--(.|\n)*-->//gx;
 
         if ($params{$name}) {
             $params{$name} .= "\0$value";
@@ -333,7 +333,7 @@ sub fetch_session {
 
     # Try to get a session id
     $self->{COOKIE} = $ENV{'HTTP_COOKIE'};
-    $self->{COOKIE} =~ s/SESSION_ID=(\w+)/$1/ if $self->{COOKIE};
+    $self->{COOKIE} =~ s/SESSION_ID=(\w+)/$1/x if $self->{COOKIE};
 
     if ($self->{COOKIE}) {
         my $session = CMS::Session->new(

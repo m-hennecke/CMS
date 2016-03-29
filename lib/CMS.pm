@@ -17,6 +17,8 @@ Full featured page generator.
 use strict;
 use warnings;
 
+use Carp;
+
 use parent 'CMS::Handler';
 use CMS::Session;
 use CMS::Trace qw(funcname);
@@ -72,7 +74,7 @@ sub new {
     $self->{CMS_ROOT} = $params->{CMS_ROOT} || '/var/www/cms';
 
     # Check the config and fill in missing defaults
-    die 'CMS_ROOT does not exist' unless (-d $self->{CMS_ROOT});
+    die 'CMS_ROOT does not exist' . "\n" unless (-d $self->{CMS_ROOT});
     if (!$self->{CONFIG}->{defaults}) {
         $self->{CONFIG}->{defaults} = { };
     }
@@ -105,7 +107,7 @@ sub new {
     if (!$self->{CONFIG}->{userdb}) {
         $self->{CONFIG}->{userdb} = $self->{CMS_ROOT} . '/user.db';
     }
-    elsif ($self->{CONFIG}->{userdb} !~ /^\//) {
+    elsif ($self->{CONFIG}->{userdb} !~ /^\//x) {
         # Relative path, prepend it with the CMS_ROOT
         $self->{CONFIG}->{userdb} = $self->{CMS_ROOT} . '/'
             . $self->{CONFIG}->{userdb};
@@ -143,11 +145,12 @@ sub handler {
 
     $self->{HTTPS} = $ENV{'HTTPS'};
 
-    eval {
+    my $fail = not eval {
         $self->parse_params();
         $self->fetch();
+        return 1;
     };
-    if ($@) {
+    if ($fail) {
         syslog(LOG_ERR, 'CMS::handler(): Unable to fetch page. ' . $@);
         # XXX Render error page
         $self->{STATUS} = '500 Internal Server Error';
@@ -176,9 +179,9 @@ sub fetch {
     # structure
     my $page = $ENV{'DOCUMENT_URI'} || '/index.html';
     my $req_uri = $page;
-    $req_uri =~ s/\/[^\/]+$//;
+    $req_uri =~ s/\/[^\/]+$//x;
     $self->{REQUEST_PATH} = $req_uri;
-    $page =~ s/^.*\///;
+    $page =~ s/^.*\///x;
     $self->{PAGE_URI} = $page;
 
     # Show the default page if the index.html page is requested
@@ -190,13 +193,13 @@ sub fetch {
 
     # The language is embedded in the last part of the page e.g. "_en.html"
     my $lang = $page;
-    if ($lang =~ s/^.*_(..)\.html$/$1/) {
+    if ($lang =~ s/^.*_(..)\.html$/$1/x) {
         $self->{PAGE_LANG} = $lang;
     }
 
     # Split off the part with the language and the suffix to get the
     # page name
-    $page =~ s/(_..)?\.html$//;
+    $page =~ s/(_..)?\.html$//x;
     $self->{PAGE} = $page;
 
     # Try to set the language, or set the default language if nothing matches
@@ -231,8 +234,8 @@ sub set_language {
             my @languages = split ',', $accept_lang;
 
             foreach (@languages) {
-                s/;.*//g;
-                s/-.*//g;
+                s/;.*//gx;
+                s/-.*//gx;
                 if (-d $self->{CONTENT_DIR} . $_) {
                     $lang = $_;
                     last;
@@ -244,7 +247,7 @@ sub set_language {
 
     # Now we should have a language, die if the language directory does
     # not exist
-    die 'No language selected to serve'
+    die 'No language selected to serve' . "\n"
         if (not -d $self->{CONTENT_DIR} . $lang);
 
     $self->{PAGE_LANG} = $lang;
@@ -282,7 +285,7 @@ sub create_document {
     if (-e $need_ssl_file && !($self->{HTTPS})) {
         my $hostname_ssl = $self->{CONFIG}->{hostname}->{ssl};
         my $path = $self->{REQUEST_PATH};
-        $path =~ s/^\/+//;
+        $path =~ s/^\/+//x;
         $self->{REDIRECT} = 'https://' . $hostname_ssl . '/' 
             . $path . '/' . $page_uri;
         return;
@@ -313,7 +316,7 @@ sub create_document {
         path     => [ $self->{TEMPLATE_DIR} ],
         cache    => 1,
     );
-    die 'Unable to load template file from directory ' . $self->{TEMPLATE_DIR}
+    croak 'Unable to load template file from directory ' . $self->{TEMPLATE_DIR}
         unless $template;
 
     # Fill in the language variable
@@ -396,7 +399,7 @@ sub create_document {
             filename => $content_file,
             cache    => 0,
         );
-        die 'Unable to include template file "' . $content_file . '"'
+        die 'Unable to include template file "' . $content_file . '"' . "\n"
             unless $content;
 
         if ($content->query(name => 'CURRENT_PAGE')) {
@@ -406,7 +409,7 @@ sub create_document {
     }
     else {
         die 'No content file available for page "' . $self->{PAGE}
-            . '" and language "' . $self->{PAGE_LANG} . '"';
+            . '" and language "' . $self->{PAGE_LANG} . '"' . "\n";
     }
 
     # Create links
@@ -482,7 +485,7 @@ sub read_file {
         close($fh);
     }
     else {
-        die('Unable to open file "' . $filename . '": ' . $!);
+        die('Unable to open file "' . $filename . '": ' . $! . "\n");
     }
 
     return $content;
@@ -530,7 +533,7 @@ sub create_links {
             my $link = $self->{REQUEST_PATH} . '/' . $topic . '_' . $lang
                 . '.html';
             if ($self->{HTTPS} || (-e $ssl_file)) {
-                $link =~ s/^\///;
+                $link =~ s/^\///x;
                 $link = 'https://' . $self->{CONFIG}->{hostname}->{ssl} . '/' 
                     . $link;
             }

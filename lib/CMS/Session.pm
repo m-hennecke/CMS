@@ -18,6 +18,8 @@ Session implementation.
 use strict;
 use warnings;
 
+use Carp;
+
 use CMS::Trace qw(funcname);
 use Data::Uniqid qw(uniqid);
 use Cache::FileCache;
@@ -120,7 +122,7 @@ sub data {
 
     my $data = shift;
     if ($data) {
-        die 'Require a hash reference.' unless ref($data) eq 'HASH';
+        croak 'Require a hash reference.' unless ref($data) eq 'HASH';
         $self->{DATA} = $data;
     }
     return $self->{DATA};

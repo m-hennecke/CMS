@@ -47,13 +47,13 @@ sub daemonize {
     # Flush the buffer
     $| = 1;
 
-    chdir '/' or die "Can't chdir to /: $!";
-    open STDIN, '<', '/dev/null' or die "Can't read /dev/null: $!";
-    open STDOUT, '>>', '/dev/null' or die "Can't write to /dev/null: $!";
-    open STDERR, '>>', '/dev/null' or die "Can't write to /dev/null: $!";
-    defined(my $pid = fork()) or die "Can't fork: $!";
+    chdir '/' or die "Can't chdir to /: $!\n";
+    open STDIN, '<', '/dev/null' or die "Can't read /dev/null: $!\n";
+    open STDOUT, '>>', '/dev/null' or die "Can't write to /dev/null: $!\n";
+    open STDERR, '>>', '/dev/null' or die "Can't write to /dev/null: $!\n";
+    defined(my $pid = fork()) or die "Can't fork: $!\n";
     exit if ($pid);
-    setsid or die "Can't start a new session: $!";
+    setsid or die "Can't start a new session: $!\n";
     umask 022;
     return;
 }
@@ -107,7 +107,7 @@ sub drop_privileges {
     # Get all the groups for this user
     my @groups;
     while (my ($name, $comment, $ggid, $mstr) = getgrent()) {
-        my %membership = map { $_ => 1 } split(/\s/, $mstr);
+        my %membership = map { $_ => 1 } split(/\s/x, $mstr);
         if (exists $membership{$user}) {
             push(@groups, $ggid) if ($ggid != 0);
         }
@@ -120,27 +120,27 @@ sub drop_privileges {
     $ENV{SHELL} = $shell;
 
     my $_drop_uidgid = sub {
-        my ($uid, $gid, $groups) = @_;
+        my ($duid, $dgid, $groups) = @_;
 
-        my %groupHash = map { $_ => 1 } ($gid, @$groups);
-        my $newgid = "$gid " . join(' ', sort { $a <=> $b } (keys %groupHash));
+        my %groupHash = map { $_ => 1 } ($dgid, @$groups);
+        my $newgid = "$dgid " . join(' ', sort { $a <=> $b } (keys %groupHash));
 
         $GID = $EGID = $newgid;
-        $UID = $EUID = $uid;
+        $UID = $EUID = $duid;
 
         # Sort the output so we can compare it
-        my %GIDHash = map { $_ => 1 } ($gid, split(/\s/, $GID));
+        my %GIDHash = map { $_ => 1 } ($dgid, split(/\s/x, $GID));
         my $cgid = int($GID) . ' '
             . join(' ', sort { $a <=> $b } (keys %GIDHash));
-        my %EGIDHash = map { $_ => 1 } ($gid, split(/\s/, $EGID));
+        my %EGIDHash = map { $_ => 1 } ($dgid, split(/\s/x, $EGID));
         my $cegid = int($EGID) . ' '
         . join(' ', sort { $a <=> $b } (keys %EGIDHash));
 
         # Check that we did actually drop the privileges
-        if (($UID != $uid) || ($EUID != $uid) || ($cgid ne $newgid)
+        if (($UID != $duid) || ($EUID != $duid) || ($cgid ne $newgid)
             || ($cegid ne $newgid)) {
             syslog(LOG_ERR, 'Could not drop privileges to uid: '
-                . $uid . ', gid:' . $newgid . "\n");
+                . $duid . ', gid:' . $newgid . "\n");
             syslog(LOG_ERR, 'Currently is: UID:' . $UID . ', EUID=' . $EUID
                 . ', GID=' . $cgid . ', EGID=' . $cegid . "\n");
         }
