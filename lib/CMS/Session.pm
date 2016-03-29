@@ -53,7 +53,7 @@ sub new {
     syslog(LOG_DEBUG, funcname());
 
     my $filecache_params = {
-       directory_umask    => 077,
+       directory_umask    => oct('077'),
        namespace          => $namespace,
        default_expires_in => 1800,
     };
@@ -61,10 +61,11 @@ sub new {
 
     my $cache = new Cache::FileCache($filecache_params);
     my $self = {
-	CACHE          => $cache,
+        CACHE => $cache,
     };
 
-    my $data = $cache->get($session_id) if $session_id;
+    my $data;
+    $data = $cache->get($session_id) if $session_id;
     if (!$data) {
         if (!$session_id) {
             # Create a new one.
@@ -73,7 +74,7 @@ sub new {
             $cache->set($session_id, $data);
         }
         else {
-            return undef;
+            return;
         }
     }
 
