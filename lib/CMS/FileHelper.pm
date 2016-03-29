@@ -24,15 +24,13 @@ use Sys::Syslog qw(:macros :standard);
 
 use CMS::Trace qw(funcname);
 
-require Exporter;
-our @ISA = qw(Exporter);
+use base qw(Exporter);
 our %EXPORT_TAGS = (
     all => [ qw(getDirectoryEntries getNewestFileDate) ]
 );
-our @EXPORT = ();
 our @EXPORT_OK = qw(getDirectoryEntries getNewestFileDate);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 ##############################################################################
 
@@ -59,7 +57,7 @@ sub getDirectoryEntries {
     my @direntries = readdir($dh);
     closedir($dh);
 
-    return grep !/\..*/, @direntries;
+    return grep { !/\..*/x } @direntries;
 }
 
 =item getNewestFileDate($dir)
@@ -80,7 +78,7 @@ sub getNewestFileDate {
     my @direntries = getDirectoryEntries($directory);
 
     foreach my $file (@direntries) {
-        if ($file !~ /\..*/) {
+        if ($file !~ /\..*/x) {
             my $moddate = (stat($directory . '/' . $file))->mtime();
             $newest = $moddate if ($moddate > $newest);
         }
@@ -88,7 +86,7 @@ sub getNewestFileDate {
     return if $newest == (-1);
 
     my $date = strftime('%G-%m-%dT%T %z', localtime $newest);
-    $date =~ s/ ([-+][0-9]{2})/$1:/g;
+    $date =~ s/ ([-+][0-9]{2})/$1:/gx;
 
     return $date;
 }

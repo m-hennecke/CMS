@@ -39,19 +39,19 @@ pod2usage(1) if ($help);
 
 ##############################################################################
 
-my $cms_config = new CMS::Config(CMS_ROOT => $cms_root);
+my $cms_config = CMS::Config->new({CMS_ROOT => $cms_root});
 
-my $sitemap_handler = new CMS::Sitemap(
+my $sitemap_handler = CMS::Sitemap->new({
         CMS_ROOT    => $cms_root,
         HOSTNAME    => $cms_config->config()->{hostname}->{plain},
         SSLHOSTNAME => $cms_config->config()->{hostname}->{ssl},
-    );
+    });
 
-my $fcgi_handler = new CMS::FCGI(
+my $fcgi_handler = CMS::FCGI->new({
         HANDLER     => $sitemap_handler,
         PORT        => $listen_port,
         HOST        => $listen_addr,
-    );
+    });
 
 $0 = 'Sitemap: master process ' . $cms_root;
 
@@ -59,11 +59,11 @@ daemonize() if ($daemon);
 
 openlog('Sitemap', 'nofatal,ndelay,pid', LOG_DAEMON);
 
-$fcgi_handler->main(
+$fcgi_handler->main({
     'runas'       => $user,
     'chroot'      => $chroot,
     'processname' => 'Sitemap: slave process ' . $cms_root,
-);
+});
 
 __END__
 

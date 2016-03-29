@@ -18,13 +18,11 @@ Helper functions for execution trace and logging.
 use strict;
 use warnings;
 
-require Exporter;
-our @ISA = qw(Exporter);
+use base qw(Exporter);
 our %EXPORT_TAGS = (
     all => [ qw(funcname) ]
 );
 our @EXPORT_OK = qw(funcname);
-our @EXPORT = ();
 
 our $VERSION = '0.01';
 

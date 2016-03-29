@@ -55,7 +55,7 @@ Error file handle, defaults to STDERR
 
 sub new {
     my $class = shift;
-    my %params = @_;
+    my $params = shift;
 
     syslog(LOG_DEBUG, funcname());
 
@@ -64,13 +64,15 @@ sub new {
         REQUEST_HEADER => { },
         BODY           => '',
         STATUS         => '200 OK',
-        STDIN          => $params{IN}  || *STDIN,
-        STDOUT         => $params{OUT} || *STDOUT,
-        STDERR         => $params{ERR} || *STDERR,
+        STDIN          => $params->{IN}  || *STDIN,
+        STDOUT         => $params->{OUT} || *STDOUT,
+        STDERR         => $params->{ERR} || *STDERR,
     };
 
     bless($self, $class);
+    return $self;
 }
+
 
 =head2 Member Functions
 
@@ -101,6 +103,8 @@ sub handler {
 
     #$self->get_request_header();
     #$self->parse_params();
+
+    return;
 }
 
 
@@ -131,6 +135,7 @@ sub render {
 
     my $method = $ENV{'REQUEST_METHOD'};
     print $out $self->{BODY} unless ($method eq 'HEAD');
+    return;
 }
 
 
@@ -147,6 +152,7 @@ sub add_header {
     my $value = shift;
 
     $self->{HEADER}->{$key} = $value;
+    return;
 }
 
 
@@ -173,6 +179,7 @@ sub get_request_header {
 Reads in the POST/GET parameters either from C<$ENV{'QUERY_STRING'}> or from
 C<$self-E<gt>{IN}> and fills the C<$self-E<gt>{PARAMS}> hash with the input
 data.
+Returns the number of parameters successfully parsed.
 
 =cut
 
@@ -224,6 +231,7 @@ sub parse_params {
     }
 
     $self->{PARAMS} = \%params;
+    return scalar %params;
 }
 
 
@@ -268,10 +276,11 @@ sub destroy_session {
     syslog(LOG_DEBUG, funcname());
 
     if ($self->{SESSION}) {
-        $self->{SESSION}->delete();
+        $self->{SESSION}->remove();
         $self->{SESSION} = undef;
         $self->{SESSION_ID} = undef;
     }
+    return;
 }
 
 
@@ -287,7 +296,7 @@ sub create_session {
 
     syslog(LOG_DEBUG, funcname());
 
-    my $session = new CMS::Session(
+    my $session = CMS::Session->new(
         undef, $self->{CONFIG}->{session}->{path}
     );
     if (! $session) {
@@ -327,7 +336,7 @@ sub fetch_session {
     $self->{COOKIE} =~ s/SESSION_ID=(\w+)/$1/ if $self->{COOKIE};
 
     if ($self->{COOKIE}) {
-        my $session = new CMS::Session(
+        my $session = CMS::Session->new(
             $self->{COOKIE}, $self->{CONFIG}->{session}->{path}
         );
         if (!$session) {
@@ -374,6 +383,7 @@ sub set_session_cookie {
             . ';domain=' . $self->{CONFIG}->{session}->{cookiedomain};
         $self->add_header('Set-Cookie', $cookie);
     }
+    return;
 }
 
 1;

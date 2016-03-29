@@ -47,28 +47,28 @@ setlogmask(LOG_UPTO($loglevels[$verbose]));
 
 ##############################################################################
 
-my $cms_config = new CMS::Config(CMS_ROOT => $cms_root);
+my $cms_config = CMS::Config->new({CMS_ROOT => $cms_root});
 
-my $cms_handler = new CMS(
+my $cms_handler = CMS->new({
         CMS_ROOT    => $cms_root,
         CONFIG      => $cms_config->config(),
-    );
+    });
 
-my $fcgi_handler = new CMS::FCGI(
+my $fcgi_handler = CMS::FCGI->new({
         HANDLER     => $cms_handler,
         PORT        => $listen_port,
         HOST        => $listen_addr,
-    );
+    });
 
 $0 = 'CMS: master process ' . $cms_root;
 
 daemonize() if ($daemon);
 
-$fcgi_handler->main(
+$fcgi_handler->main({
     'runas'       => $user,
     'chroot'      => $chroot,
     'processname' => 'CMS: slave process ' . $cms_root,
-);
+});
 
 __END__
 

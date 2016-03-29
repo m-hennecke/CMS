@@ -57,25 +57,27 @@ Hostname used in the generated links. Default uses L<hostname()|hostname>
 
 sub new {
     my $class = shift;
-    my %params = @_;
+    my $params = shift;
 
     syslog(LOG_DEBUG, funcname());
 
-    my $self = $class->SUPER::new(%params);
-    $self->{CMS_ROOT} = $params{CMS_ROOT} || '/var/www/cms';
-    $self->{HOSTNAME} = $params{HOSTNAME} || hostname();
-    $self->{SSLHOSTNAME} = $params{SSLHOSTNAME} || $self->{HOSTNAME};
+    my $self = $class->SUPER::new($params);
+    $self->{CMS_ROOT} = $params->{CMS_ROOT} || '/var/www/cms';
+    $self->{HOSTNAME} = $params->{HOSTNAME} || hostname();
+    $self->{SSLHOSTNAME} = $params->{SSLHOSTNAME} || $self->{HOSTNAME};
 
     if (! -d $self->{CMS_ROOT}) {
-        die 'CMS_ROOT ' . $self->{CMS_ROOT} . ' is no directory.';
+        die 'CMS_ROOT ' . $self->{CMS_ROOT} . ' is no directory.' . "\n";
     }
     # Remove the trailing slash from the CMS_ROOT if present
-    $self->{CMS_ROOT} =~ s/\/$//;
+    $self->{CMS_ROOT} =~ s/\/$//x;
 
     $self->{GZIP_DONE} = undef;
 
     bless($self, $class);
+    return $self;
 }
+
 
 =head2 Member Functions
 
@@ -136,7 +138,9 @@ sub handler {
     $xml .= '</urlset>' . "\n";
     $self->{BODY} = $xml;
     $self->{GZIP_DONE} = undef;
+    return;
 }
+
 
 =item render()
 
@@ -159,6 +163,7 @@ sub render {
     }
 
     $self->SUPER::render();
+    return;
 }
 
 

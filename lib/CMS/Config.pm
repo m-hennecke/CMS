@@ -49,13 +49,13 @@ B<CMS_ROOT>: Root directory of the CMS.
 
 sub new {
     my $class = shift;
-    my %params = @_;
+    my $params = shift;
 
     my $self = {
-        CMS_ROOT    => $params{CMS_ROOT} || '/var/www/cms',
+        CMS_ROOT    => $params->{CMS_ROOT} || '/var/www/cms',
     };
 
-    die 'No CMS_ROOT directory found at "' . $self->{CMS_ROOT} . '"'
+    die 'No CMS_ROOT directory found at "' . $self->{CMS_ROOT} . '"' . "\n"
         unless -d $self->{CMS_ROOT};
 
 
@@ -73,6 +73,7 @@ sub new {
     $self->{CONFIG} = $config;
 
     bless($self, $class);
+    return $self;
 }
 
 

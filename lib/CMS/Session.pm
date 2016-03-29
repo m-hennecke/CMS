@@ -59,7 +59,7 @@ sub new {
     };
     $filecache_params->{cache_root} = $cache_root if $cache_root;
 
-    my $cache = new Cache::FileCache($filecache_params);
+    my $cache = Cache::FileCache->new($filecache_params);
     my $self = {
         CACHE => $cache,
     };
@@ -89,6 +89,7 @@ sub DESTROY {
     my $self = shift;
 
     $self->store();
+    return;
 }
 
 =head2 Member Functions
@@ -117,8 +118,8 @@ Getter/Setter for the associated session data.
 sub data {
     my $self = shift;
 
-    if (@_) {
-        my $data = shift;
+    my $data = shift;
+    if ($data) {
         die 'Require a hash reference.' unless ref($data) eq 'HASH';
         $self->{DATA} = $data;
     }
@@ -138,20 +139,22 @@ sub store {
     if ($self->id()) {
         $self->{CACHE}->set($self->id(), $self->data());
     }
+    return;
 }
 
 
-=item delete()
+=item remove()
 
 Removes the session data from the cache.
 
 =cut
 
-sub delete {
+sub remove {
     my $self = shift;
 
     $self->{CACHE}->remove($self->id()) if $self->id();
     $self->{SESSION_ID} = undef;
+    return;
 }
 
 
@@ -185,6 +188,7 @@ sub set {
     syslog(LOG_DEBUG, funcname());
 
     $self->{DATA}->{$key} = $data;
+    return;
 }
 
 

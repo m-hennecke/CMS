@@ -44,10 +44,10 @@ eval {
 };
 ok($@, 'Die by passing wrong argument to data()');
 like($@, qr/^Require a hash reference./, '... and throws the right exception.');
-$session->delete();
+$session->remove();
 # Delete twice to cover the condition of a valid session id
-$session->delete();
+$session->remove();
 undef $session;
 $session = new CMS::Session($id, $def_root, $namespace);
-ok(!defined($session), 'Session deleted.');
+ok(!defined($session), 'Session removed.');
 

@@ -23,12 +23,11 @@ use English;
 use POSIX qw(setsid);
 use Sys::Syslog qw(:macros :standard);
 
-require Exporter;
-our @ISA = qw(Exporter);
+use base qw(Exporter);
 our %EXPORT_TAGS = (
     all => [ qw(daemonize drop_privileges change_root) ]
 );
-our @EXPORT = qw(daemonize drop_privileges change_root);
+our @EXPORT_OK = qw(daemonize drop_privileges change_root);
 
 our $VERSION = '0.02';
 
@@ -56,6 +55,7 @@ sub daemonize {
     exit if ($pid);
     setsid or die "Can't start a new session: $!";
     umask 022;
+    return;
 }
 
 
@@ -72,6 +72,7 @@ sub change_root {
     return if ($UID != 0);
     chroot($new_root);
     chdir('/');
+    return;
 }
 
 

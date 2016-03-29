@@ -61,20 +61,22 @@ PORT: When specified FCGI will use TCP for communication.
 
 sub new {
     my $class = shift;
-    my %params = @_;
+    my $params = shift;
 
     my $self = {
-        HANDLER      => $params{HANDLER} || new CMS::Handler(),
+        HANDLER      => $params->{HANDLER} || CMS::Handler->new(),
         SOCKET       => undef,
-        HOST         => $params{HOST} || 'localhost',
-        PORT         => $params{PORT},
+        HOST         => $params->{HOST} || 'localhost',
+        PORT         => $params->{PORT},
         LAST_REQUEST => 0,
         BUSY         => 0,
         FORKS        => { },
     };
 
     bless($self, $class);
+    return $self;
 }
+
 
 =head1 Member Functions
 
@@ -88,6 +90,7 @@ sub _handleTERM {
 
     $self->{LAST_REQUEST} = 1;
     syslog(LOG_INFO, 'Caught signal, terminating...');
+    return;
 }
 
 
@@ -105,6 +108,7 @@ sub _REAPER {
         }
     }
     $self->set_reaper();
+    return;
 }
 
 
@@ -117,6 +121,7 @@ Sets the CHLD signal handler so that our reaper function is called.
 sub set_reaper {
     my $self = shift;
     $SIG{CHLD} = sub { $self->_REAPER(); };
+    return;
 }
 
 
@@ -145,6 +150,7 @@ sub set_signal_handlers {
             . ' in ' . $loc[1]);
         die @_;
     };
+    return;
 }
 
 
@@ -168,6 +174,7 @@ sub handle_request {
         # Log the error
         syslog(LOG_ERR, 'CMS::FCGI::handle_request(): ' . $@);
     }
+    return;
 }
 
 
@@ -180,7 +187,7 @@ the handler to process the request.
 
 sub main {
     my $self = shift;
-    my %params = @_;
+    my $params = shift;
 
     # Flush the output buffer after each write operation
     $| = 1;
@@ -193,21 +200,23 @@ sub main {
     }
 
     # Drop privileges
-    drop_privileges($params{'runas'}, $params{'chroot'});
+    drop_privileges($params->{'runas'}, $params->{'chroot'});
 
     # Overwrite the DESTROY() sub routine of the request object to avoid a
     # race condition when the parent is destroying the request before the
     # child handler has finished it. This means calling Finish() is mandatory
     # in the child process.
     {
+        ## no critic
         no warnings qw( redefine );
         *FCGI::DESTROY = sub { };
+        ## use critic
     }
 
     my $request_factory = sub {
-        my $in = new IO::Handle();
-        my $out = new IO::Handle();
-        my $err = new IO::Handle();
+        my $in = IO::Handle->new();
+        my $out = IO::Handle->new();
+        my $err = IO::Handle->new();
         return FCGI::Request(
                 $in, $out, $err, \%ENV,
                 $self->{SOCKET} || 0, &FCGI::FAIL_ACCEPT_ON_INTR()
@@ -231,8 +240,8 @@ RETRY:
 
         my $pid = fork();
         if (!defined($pid)) {
-            if ($params{'processname'}) {
-                $0 = $params{'processname'};
+            if ($params->{'processname'}) {
+                $0 = $params->{'processname'};
             }
             $req->Attach();
             my ($in, $out, $err) = $req->GetHandles();
@@ -277,6 +286,7 @@ FINISH:
         . ($self->{LAST_REQUEST} || 'undef'));
     $req->Finish();
     $self->{BUSY} = 0;
+    return;
 }
 
 1;

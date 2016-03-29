@@ -60,16 +60,16 @@ class via the C<config.yaml> file in the C<CMS_ROOT> directory.
 
 sub new {
     my $class = shift;
-    my %params = @_;
+    my $params = shift;
 
     syslog(LOG_DEBUG, funcname());
 
-    my $self = $class->SUPER::new(%params);
-    $self->{CONFIG} = $params{CONFIG} || { };
+    my $self = $class->SUPER::new($params);
+    $self->{CONFIG} = $params->{CONFIG} || { };
     $self->{REDIRECT} = undef;        # URL of redirect if enabled
     $self->{PAGE_URI} = undef;
     $self->{PAGE_LANG} = '';
-    $self->{CMS_ROOT} = $params{CMS_ROOT} || '/var/www/cms';
+    $self->{CMS_ROOT} = $params->{CMS_ROOT} || '/var/www/cms';
 
     # Check the config and fill in missing defaults
     die 'CMS_ROOT does not exist' unless (-d $self->{CMS_ROOT});
@@ -115,6 +115,7 @@ sub new {
     $self->{TEMPLATE_DIR} = $self->{CMS_ROOT} . '/templates/';
 
     bless($self, $class);
+    return $self;
 }
 
 
@@ -153,6 +154,7 @@ sub handler {
         $self->{BODY} = '$@';
         $self->add_header('Content-type', 'plain/text');
     }
+    return;
 }
 
 
@@ -202,6 +204,7 @@ sub fetch {
 
     # Create the response body from the template
     $self->create_document();
+    return;
 }
 
 
@@ -245,6 +248,7 @@ sub set_language {
         if (not -d $self->{CONTENT_DIR} . $lang);
 
     $self->{PAGE_LANG} = $lang;
+    return;
 }
 
 
@@ -304,7 +308,7 @@ sub create_document {
     }
 
     # Read the template for the page
-    my $template = new HTML::Template(
+    my $template = HTML::Template->new(
         filename => 'page.tmpl',
         path     => [ $self->{TEMPLATE_DIR} ],
         cache    => 1,
@@ -355,7 +359,7 @@ sub create_document {
         # Do the session and log on magic
         $self->create_session() unless $self->{SESSION};
         my $session = $self->{SESSION};
-        my $userdb = new Authen::Htpasswd($self->{CONFIG}->{userdb});
+        my $userdb = Authen::Htpasswd->new($self->{CONFIG}->{userdb});
 
         # Get the username and password from the POST or GET data
         my $username = $self->{PARAMS}->{username} || '';
@@ -388,7 +392,7 @@ sub create_document {
 
     if (-e $content_file) {
         # Parse the content file as a template, so that we can include files
-        my $content = new HTML::Template(
+        my $content = HTML::Template->new(
             filename => $content_file,
             cache    => 0,
         );
@@ -421,7 +425,9 @@ sub create_document {
 
     my $lastchange = getNewestFileDate($page_dir);
     $self->add_header('Last-Modified', $lastchange) if $lastchange;
+    return;
 }
+
 
 =item render()
 
