@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 
+use Test::More;
 use ExtUtils::Manifest qw/maniread/;
 
 my @perl_files;
@@ -18,9 +19,18 @@ BEGIN {
     }
 }
 
-use Test::More tests => scalar @perl_files;
-eval 'use Test::Perl::Critic';
-plan skip_all => 'Test::Perl::Critic required' if $@;
+unless ($ENV{RELEASE_TESTING}) {
+    plan(skip_all => 'Author tests not required for installation');
+}
+else {
+    eval { use Test::Perl::Critic (-severity => 5); };
+    if ($@) {
+        plan(skip_all => 'Test::Perl::Critic required');
+    }
+    else {
+        plan(tests => scalar @perl_files);
+    }
+}
 
 foreach my $file (@perl_files) {
     critic_ok($file);

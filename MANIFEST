@@ -1,5 +1,6 @@
 Changes
 MANIFEST
+MANIFEST.SKIP
 Makefile.PL
 README
 cms.pl
@@ -14,8 +15,9 @@ lib/CMS/Session.pm
 lib/CMS/Sitemap.pm
 lib/CMS/Trace.pm
 t/00-load.t
+t/boilerplate.t
+t/critic.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
-t/boilerplate.t
 t/session.t
