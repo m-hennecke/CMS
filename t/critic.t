@@ -7,6 +7,8 @@ use warnings;
 use Test::More;
 use ExtUtils::Manifest qw/maniread/;
 
+delete $ENV{PATH};
+
 my @perl_files;
 
 BEGIN {
