@@ -2,7 +2,7 @@ Changes
 MANIFEST
 MANIFEST.SKIP
 Makefile.PL
-README
+README.md
 cms.pl
 sitemap.pl
 lib/CMS.pm
