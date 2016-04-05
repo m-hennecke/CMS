@@ -1,10 +1,10 @@
-CMS
+# CMS
 
 A simple content management system that delivers full web pages from a
 collection of files. The overall structure is defined by the directory
 layout.
 
-INSTALLATION
+## INSTALLATION
 
 To install this module, run the following commands:
 
@@ -13,7 +13,7 @@ To install this module, run the following commands:
 	make test
 	make install
 
-SUPPORT AND DOCUMENTATION
+## SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
 perldoc command.
@@ -21,12 +21,13 @@ perldoc command.
     perldoc CMS
 
 
-LICENSE AND COPYRIGHT
+## LICENSE AND COPYRIGHT
 
 Copyright (C) 2014 Markus Hennecke
 
 This program is distributed under the (Revised) BSD License:
-L<http://www.opensource.org/licenses/bsd-license.php>
+[http://www.opensource.org/licenses/bsd-license.php]
+(http://www.opensource.org/licenses/bsd-license.php)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
