@@ -1,7 +1,9 @@
 #!perl -T
+# vi: set tabstop=4 expandtab shiftwidth=4:
 
 use strict;
 use warnings;
+
 use Test::More;
 
 unless ($ENV{RELEASE_TESTING}) {

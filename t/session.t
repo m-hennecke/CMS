@@ -6,6 +6,8 @@ use Test::More tests => 11;
 use strict;
 use warnings;
 
+delete $ENV{PATH};
+
 my $namespace = 'TestCMS';
 my $cache;
 my $def_root;

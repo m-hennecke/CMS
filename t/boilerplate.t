@@ -1,7 +1,9 @@
 #!perl -T
+# vi: set tabstop=4 expandtab shiftwidth=4:
 
 use strict;
 use warnings;
+
 use Test::More tests => 11;
 
 sub not_in_file_ok {
@@ -37,27 +39,25 @@ sub module_boilerplate_ok {
 }
 
 TODO: {
-  #local $TODO = "Need to replace the boilerplate text";
+    #local $TODO = "Need to replace the boilerplate text";
 
-  not_in_file_ok('README.md' =>
-    "The README is used..."       => qr/The README is used/,
-    "'version information here'"  => qr/to provide version information/,
-  );
+    not_in_file_ok('README.md' =>
+        "The README is used..."       => qr/The README is used/,
+        "'version information here'"  => qr/to provide version information/,
+    );
 
-  not_in_file_ok(Changes =>
-    "placeholder date/time"       => qr(Date/time)
-  );
+    not_in_file_ok(Changes =>
+        "placeholder date/time"       => qr(Date/time)
+    );
 
-  module_boilerplate_ok('lib/CMS.pm');
-  module_boilerplate_ok('lib/CMS/Config.pm');
-  module_boilerplate_ok('lib/CMS/Daemon.pm');
-  module_boilerplate_ok('lib/CMS/FCGI.pm');
-  module_boilerplate_ok('lib/CMS/FileHelper.pm');
-  module_boilerplate_ok('lib/CMS/Handler.pm');
-  module_boilerplate_ok('lib/CMS/Session.pm');
-  module_boilerplate_ok('lib/CMS/Sitemap.pm');
-  module_boilerplate_ok('lib/CMS/Trace.pm');
-
-
+    module_boilerplate_ok('lib/CMS.pm');
+    module_boilerplate_ok('lib/CMS/Config.pm');
+    module_boilerplate_ok('lib/CMS/Daemon.pm');
+    module_boilerplate_ok('lib/CMS/FCGI.pm');
+    module_boilerplate_ok('lib/CMS/FileHelper.pm');
+    module_boilerplate_ok('lib/CMS/Handler.pm');
+    module_boilerplate_ok('lib/CMS/Session.pm');
+    module_boilerplate_ok('lib/CMS/Sitemap.pm');
+    module_boilerplate_ok('lib/CMS/Trace.pm');
 }
 
