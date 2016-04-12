@@ -63,12 +63,14 @@ sub new {
 
     my $self = $class->SUPER::new($params);
     $self->{CMS_ROOT} = $params->{CMS_ROOT} || '/var/www/cms';
+    $self->{CHROOT} = $params->{CHROOT};
     $self->{HOSTNAME} = $params->{HOSTNAME} || hostname();
     $self->{SSLHOSTNAME} = $params->{SSLHOSTNAME} || $self->{HOSTNAME};
 
-    if (! -d $self->{CMS_ROOT}) {
-        die 'CMS_ROOT ' . $self->{CMS_ROOT} . ' is no directory.' . "\n";
-    }
+    my $full_path = $self->{CHROOT} || '';
+    $full_path .= $self->{CMS_ROOT};
+    die "CMS_ROOT $self->{CMS_ROOT} does not exist.\n" unless (-d $full_path);
+
     # Remove the trailing slash from the CMS_ROOT if present
     $self->{CMS_ROOT} =~ s/\/$//x;
 

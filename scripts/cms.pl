@@ -49,8 +49,17 @@ setlogmask(LOG_UPTO($loglevels[$verbose]));
 
 my $cms_config = CMS::Config->new({CMS_ROOT => $cms_root});
 
+my $rootdir = $cms_config->translate_cmsroot($chroot);
+die "The chroot directory does not contain CMS root directory.\n"
+    unless $rootdir;
+if ($chroot) {
+    # Add the leading slash, so we have an absolut path under the chroot again
+    $rootdir = '/' . $rootdir unless $rootdir =~ m/^\//x;
+}
+
 my $cms_handler = CMS->new({
-        CMS_ROOT    => $cms_root,
+        CMS_ROOT    => $rootdir,
+        CHROOT      => $chroot,
         CONFIG      => $cms_config->config(),
     });
 

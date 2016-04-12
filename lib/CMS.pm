@@ -26,6 +26,7 @@ use CMS::FileHelper qw(getNewestFileDate getDirectoryEntries);
 
 use Authen::Htpasswd;
 use File::Path qw(make_path);
+use File::Spec;
 use Sys::Hostname;
 use Sys::Syslog qw(:macros :standard);
 use HTML::Template;
@@ -72,9 +73,12 @@ sub new {
     $self->{PAGE_URI} = undef;
     $self->{PAGE_LANG} = '';
     $self->{CMS_ROOT} = $params->{CMS_ROOT} || '/var/www/cms';
+    $self->{CHROOT} = $params->{CHROOT};
 
     # Check the config and fill in missing defaults
-    die 'CMS_ROOT does not exist' . "\n" unless (-d $self->{CMS_ROOT});
+    my $full_path = $self->{CHROOT} || '';
+    $full_path .= $self->{CMS_ROOT};
+    die "CMS_ROOT does not exist\n" unless (-d $full_path);
     if (!$self->{CONFIG}->{defaults}) {
         $self->{CONFIG}->{defaults} = { };
     }
@@ -247,8 +251,8 @@ sub set_language {
 
     # Now we should have a language, die if the language directory does
     # not exist
-    die 'No language selected to serve' . "\n"
-        if (not -d $self->{CONTENT_DIR} . $lang);
+    die 'No content found: ' . "$self->{CONTENT_DIR}\n"
+        unless (-d $self->{CONTENT_DIR} . $lang);
 
     $self->{PAGE_LANG} = $lang;
     return;

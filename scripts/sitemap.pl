@@ -41,8 +41,17 @@ pod2usage(1) if ($help);
 
 my $cms_config = CMS::Config->new({CMS_ROOT => $cms_root});
 
+my $rootdir = $cms_config->translate_cmsroot($chroot);
+die "The chroot directory does not contain CMS root directory.\n"
+    unless $rootdir;
+if ($chroot) {
+    # Add the leading slash, so we have an absolut path under the chroot again
+    $rootdir = '/' . $rootdir unless $rootdir =~ m/^\//x;
+}
+
 my $sitemap_handler = CMS::Sitemap->new({
-        CMS_ROOT    => $cms_root,
+        CMS_ROOT    => $rootdir,
+        CHROOT      => $chroot,
         HOSTNAME    => $cms_config->config()->{hostname}->{plain},
         SSLHOSTNAME => $cms_config->config()->{hostname}->{ssl},
     });

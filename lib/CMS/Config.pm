@@ -19,6 +19,7 @@ functionality implemented yet.
 use strict;
 use warnings;
 
+use File::Spec;
 use YAML::XS;
 
 ##############################################################################
@@ -92,6 +93,33 @@ sub config {
 
     return $self->{CONFIG};
 }
+
+
+=item translate_cmsroot($chroot)
+
+Returns the root directory relative to the C<$chroot> parameter. If
+that parameter is not defined, it will return C<< $self->{CMS_ROOT} >>.
+
+=cut
+
+sub translate_cmsroot {
+    my $self = shift;
+    my $chroot = shift || return $self->{CMS_ROOT};
+
+    my @cms_root_path = File::Spec->splitdir($self->{CMS_ROOT});
+    my @chroot_path = File::Spec->splitdir($chroot);
+
+    while (@chroot_path) {
+        my $chroot_path_part = shift @chroot_path;
+        my $cmsroot_path_part = shift @cms_root_path;
+
+        return unless defined $cmsroot_path_part;
+        return unless ($chroot_path_part eq $cmsroot_path_part);
+    }
+
+    return File::Spec->catdir(@cms_root_path);
+}
+
 
 1;
 
