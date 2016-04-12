@@ -3,8 +3,6 @@ MANIFEST
 MANIFEST.SKIP
 Makefile.PL
 README.md
-cms.pl
-sitemap.pl
 lib/CMS.pm
 lib/CMS/Config.pm
 lib/CMS/Daemon.pm
@@ -14,6 +12,8 @@ lib/CMS/Handler.pm
 lib/CMS/Session.pm
 lib/CMS/Sitemap.pm
 lib/CMS/Trace.pm
+scripts/cms.pl
+scripts/sitemap.pl
 t/00-load.t
 t/boilerplate.t
 t/critic.t

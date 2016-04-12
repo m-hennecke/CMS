@@ -10,11 +10,8 @@ sub MY::libscan {
     my $mm = shift;
     my $path = shift;
 
-    if ($path =~ m{\$\(INST_LIB\)}x) {
-        warn "$path\n";
-    }
     return $path if -d $path;
-    return $path if $path =~ /\.pm$/;
+    return $path if $path =~ /\.p[ml]$/;
     return '';
 }
 
@@ -27,7 +24,7 @@ WriteMakefile(
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
       ? ('LICENSE'=> 'bsd')
       : ()),
-    EXE_FILES => [ qw/cms.pl sitemap.pl/ ],
+    EXE_FILES => [ qw(scripts/cms.pl scripts/sitemap.pl) ],
     PREREQ_PM => {
         'Cache::Cache'     => '1.08',
         'Data::Uniqid'     => '0.12',
