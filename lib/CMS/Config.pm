@@ -71,7 +71,9 @@ sub new {
         unless -f $self->{CMS_CONFIG};
 
     my $config = YAML::XS::LoadFile($config_file);
-    $self->{CONFIG} = $config;
+    die "Unable to load config from '$config_file'"
+        unless ref($config) eq 'HASH' && exists $config->{'cms'};
+    $self->{CONFIG} = $config->{'cms'};
 
     bless($self, $class);
     return $self;
