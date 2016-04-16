@@ -86,7 +86,7 @@ sub getNewestFileDate {
     return if $newest == (-1);
 
     my $date = strftime('%G-%m-%dT%T %z', localtime $newest);
-    $date =~ s/ ([-+][0-9]{2})/$1:/gx;
+    $date =~ s/\ ([-+][0-9]{2})/$1:/gx;
 
     return $date;
 }
