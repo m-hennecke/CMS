@@ -197,7 +197,7 @@ sub main {
     if (defined $self->{PORT}) {
         my $host = $self->{HOST};
         my $port = $self->{PORT};
-        $self->{SOCKET} = FCGI::OpenSocket("$host:$port", 5);
+        $self->{SOCKET} = FCGI::OpenSocket("$host:$port", 25);
     }
 
     # Drop privileges
@@ -279,6 +279,7 @@ RETRY:
     }
 
     if (!$self->{LAST_REQUEST} && (++$retry < 5)) {
+        $req = $request_factory->();
         goto RETRY;
     }
 
